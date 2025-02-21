@@ -1,6 +1,9 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
+import serial
+
+ser = serial.Serial('/dev/ttyACM0')
 
 class TrajectorySubscriber(Node):
 
@@ -11,11 +14,21 @@ class TrajectorySubscriber(Node):
         # Your code here
 
         self.get_logger().info('Subscriber node has been started.')
-        self.position = {'x': 0.0, 'z': 0.0, 'ry': 0.0}
+        # self.position = {'x': 0.0, 'z': 0.0, 'ry': 0.0}
 
     def listener_callback(self, msg : Twist):
-               
-        self.get_logger().info(f'Status: {msg.linear}, and {msg.angular}')
+        
+        self.get_logger().info(f'received {msg.linear.x=}')
+        speed = (int(msg.linear.x)).to_bytes(1, 'little')
+        angle = (int(msg.angular.y)).to_bytes(1, 'little')
+        self.get_logger().info(f'Speed : {speed} | Angle : {angle}')
+        
+        ser.write(speed)
+        ser.write(angle)
+
+        print(ser.readline())
+        print(ser.readline())
+
 
 def main(args=None):
     rclpy.init(args=args)
